@@ -49,9 +49,9 @@ import java.util.function.Supplier;
  */
 class DBShutdownHook extends Thread implements FileVisitor<Path> {
 
-    private static final Logger logger = LoggerFactory.getLogger(DB.class);
+    private static final Logger logger = LoggerFactory.getLogger(Redis.class);
 
-    private final DB db;
+    private final Redis db;
     private final Supplier<ManagedProcess> processSupplier;
     private final Supplier<File> dataDirSupplier;
     private final Supplier<File> baseDirSupplier;
@@ -72,7 +72,7 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
      */
     public DBShutdownHook(
             String threadName,
-            DB db,
+            Redis db,
             Supplier<ManagedProcess> mysqldProcessSupplier,
             Supplier<File> baseDirSupplier,
             Supplier<File> tmpDirSupplier,

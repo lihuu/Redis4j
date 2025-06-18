@@ -16,9 +16,9 @@ import static top.lihuu.redis4j.RedisConfiguration.Executable.Client;
 import static top.lihuu.redis4j.RedisConfiguration.Executable.Server;
 
 
-public class DB implements Closeable {
+public class Redis implements Closeable {
 
-    private static final Logger logger = LoggerFactory.getLogger(DB.class);
+    private static final Logger logger = LoggerFactory.getLogger(Redis.class);
 
     protected final RedisConfiguration configuration;
 
@@ -29,7 +29,7 @@ public class DB implements Closeable {
 
     protected int dbStartMaxWaitInMS = 30000;
 
-    protected DB(RedisConfiguration config) {
+    protected Redis(RedisConfiguration config) {
         configuration = config;
     }
 
@@ -48,8 +48,8 @@ public class DB implements Closeable {
      * @return a new DB instance
      * @throws ch.vorburger.exec.ManagedProcessException if something fatal went wrong
      */
-    public static DB newEmbeddedRedis(RedisConfiguration config) throws ManagedProcessException {
-        DB db = new DB(config);
+    public static Redis newEmbeddedRedis(RedisConfiguration config) throws ManagedProcessException {
+        Redis db = new Redis(config);
         db.prepareDirectories();
         db.unpackEmbeddedDb();
         return db;
@@ -67,7 +67,7 @@ public class DB implements Closeable {
      * @return a new DB instance
      * @throws ch.vorburger.exec.ManagedProcessException if something fatal went wrong
      */
-    public static DB newEmbeddedRedis() throws ManagedProcessException {
+    public static Redis newEmbeddedRedis() throws ManagedProcessException {
         return newEmbeddedRedis(0);
     }
 
@@ -79,7 +79,7 @@ public class DB implements Closeable {
      * @return a new DB instance
      * @throws ch.vorburger.exec.ManagedProcessException if something fatal went wrong
      */
-    public static DB newEmbeddedRedis(int port) throws ManagedProcessException {
+    public static Redis newEmbeddedRedis(int port) throws ManagedProcessException {
         RedisConfigurationBuilder config = new RedisConfigurationBuilder();
         config.setPort(port);
         return newEmbeddedRedis(config.build());
@@ -266,7 +266,7 @@ public class DB implements Closeable {
      */
     private void cleanupOnExit() {
         String threadName = "Shutdown Hook Deletion Thread for Temporary DB " + dataDir.toString();
-        final DB db = this;
+        final Redis db = this;
         Runtime.getRuntime().addShutdownHook(
                 new DBShutdownHook(
                         threadName,
