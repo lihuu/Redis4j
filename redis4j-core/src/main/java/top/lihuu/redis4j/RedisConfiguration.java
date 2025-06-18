@@ -25,14 +25,15 @@ import org.apache.commons.lang3.SystemUtils;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Enables passing in custom options when starting up the database server. This is similar to
- * MySQL/MariaDB's my.cnf configuration file.
+ * origin from <a href="https://github.com/MariaDB4j/MariaDB4j/blob/main/mariaDB4j-core/src/main/java/ch/vorburger/mariadb4j/DBConfiguration.java">...</a>
+ * <p>
+ * I just do some refactoring to make it more suitable for Redis4j.
  *
  * @author Michael Vorburger
+ * @author lihuu
  */
 public interface RedisConfiguration {
 
@@ -63,13 +64,6 @@ public interface RedisConfiguration {
      * @return returns base directory value
      */
     File getBaseDir();
-
-    /**
-     * Base directory where DB binaries' linked libraries are expected to be found.
-     *
-     * @return returns lib directory value
-     */
-    File getLibDir();
 
     /**
      * Base directory for DB's actual data files.
@@ -112,17 +106,6 @@ public interface RedisConfiguration {
      */
     ManagedProcessListener getProcessListener();
 
-    /**
-     * Whether to to "--skip-grant-tables".
-     *
-     * @return returns boolean isSecurityDisabled value
-     */
-    boolean isSecurityDisabled();
-
-    String getURL(String dbName);
-
-    String getDefaultCharacterSet();
-
     File getExecutable(Executable executable);
 
     enum Executable {
@@ -137,17 +120,12 @@ public interface RedisConfiguration {
         private final String socket;
         private final String binariesClassPathLocation;
         private final File baseDir;
-        private final File libDir;
         private final File dataDir;
         private final File tmpDir;
         private final boolean isDeletingTemporaryBaseAndDataDirsOnShutdown;
-        private final boolean isWindows;
         private final List<String> args;
         private final String osLibraryEnvironmentVarName;
-        private final String defaultCharacterSet;
         private final ManagedProcessListener listener;
-        private final boolean isSecurityDisabled;
-        private final Function<String, String> getURL;
         private final Map<Executable, Supplier<File>> executables;
 
         Impl(
@@ -155,33 +133,23 @@ public interface RedisConfiguration {
                 String socket,
                 String binariesClassPathLocation,
                 File baseDir,
-                File libDir,
                 File dataDir,
                 File tmpDir,
-                boolean isWindows,
                 List<String> args,
                 String osLibraryEnvironmentVarName,
-                boolean isSecurityDisabled,
                 boolean isDeletingTemporaryBaseAndDataDirsOnShutdown,
-                Function<String, String> getURL,
-                String defaultCharacterSet,
                 Map<Executable, Supplier<File>> executables,
                 ManagedProcessListener listener) {
             this.port = port;
             this.socket = socket;
             this.binariesClassPathLocation = binariesClassPathLocation;
             this.baseDir = baseDir;
-            this.libDir = libDir;
             this.dataDir = dataDir;
             this.tmpDir = tmpDir;
             this.isDeletingTemporaryBaseAndDataDirsOnShutdown =
                     isDeletingTemporaryBaseAndDataDirsOnShutdown;
-            this.isWindows = isWindows;
             this.args = args;
             this.osLibraryEnvironmentVarName = osLibraryEnvironmentVarName;
-            this.isSecurityDisabled = isSecurityDisabled;
-            this.getURL = getURL;
-            this.defaultCharacterSet = defaultCharacterSet;
             this.listener = listener;
             this.executables = executables;
         }
@@ -206,10 +174,6 @@ public interface RedisConfiguration {
             return baseDir;
         }
 
-        @Override
-        public File getLibDir() {
-            return libDir;
-        }
 
         @Override
         public File getDataDir() {
@@ -242,23 +206,8 @@ public interface RedisConfiguration {
         }
 
         @Override
-        public boolean isSecurityDisabled() {
-            return isSecurityDisabled;
-        }
-
-        @Override
-        public String getURL(String dbName) {
-            return getURL.apply(dbName);
-        }
-
-        @Override
         public ManagedProcessListener getProcessListener() {
             return listener;
-        }
-
-        @Override
-        public String getDefaultCharacterSet() {
-            return defaultCharacterSet;
         }
 
         @Override

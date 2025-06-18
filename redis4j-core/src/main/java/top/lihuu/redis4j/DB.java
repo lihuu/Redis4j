@@ -55,6 +55,10 @@ public class DB implements Closeable {
         return db;
     }
 
+    public int getPort() {
+        return configuration.getPort();
+    }
+
 
     /**
      * This factory method is the mechanism for constructing a new embedded database with random port for use. This
@@ -144,6 +148,15 @@ public class DB implements Closeable {
         return builder.build();
     }
 
+    /**
+     * Runs a command using the Redis client. This method constructs a command to be executed
+     * <p>
+     * like redis-cli -p <port> <command>, where <port> is the port of the Redis server
+     *
+     * @param command
+     * @return
+     * @throws ManagedProcessException
+     */
     public String runCommand(String command) throws ManagedProcessException {
         ManagedProcessBuilder managedProcessBuilder = new ManagedProcessBuilder(configuration.getExecutable(Client));
         ByteArrayOutputStream stdOutput = new ByteArrayOutputStream();
@@ -173,14 +186,6 @@ public class DB implements Closeable {
         builder.addArgument("--port " + configuration.getPort());
         if (!configuration.isWindows()) {
             builder.addFileArgument("--socket", getAbsoluteSocketFile());
-        }
-    }
-
-    protected void addSocketOrPortArgument(ManagedProcessBuilder builder) throws IOException {
-        if (!configuration.isWindows()) {
-            builder.addFileArgument("--socket", getAbsoluteSocketFile());
-        } else {
-            builder.addArgument("--port=" + configuration.getPort());
         }
     }
 

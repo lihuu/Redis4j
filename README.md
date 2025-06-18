@@ -1,1 +1,4 @@
-Redis wrapper for java. No external dependencies,No cluster, no sentinel, just run it in your application.
+A [redis](https://github.com/redis/redis) launcher for java, inspired
+by [MariaDB4j](https://github.com/MariaDB4j/MariaDB4j). No external environment
+dependencies,No
+cluster, no sentinel, just run it in your java integration tests.

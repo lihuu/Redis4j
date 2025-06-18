@@ -2,7 +2,7 @@ package top.lihuu.redis4j;
 
 import org.apache.commons.lang3.SystemUtils;
 
-final class Platform {
+final class OSPlatform {
 
     enum OS {
         LINUX,
@@ -17,10 +17,10 @@ final class Platform {
     }
 
     public static boolean isWindows() {
-        return os.equals(Platform.OS.WINDOWS);
+        return os.equals(OSPlatform.OS.WINDOWS);
     }
 
     public static boolean isMacOS() {
-        return Platform.get().equals(Platform.OS.MAC);
+        return OSPlatform.get().equals(OSPlatform.OS.MAC);
     }
 }

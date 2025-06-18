@@ -35,9 +35,9 @@ import static top.lihuu.redis4j.RedisConfiguration.Executable.*;
 
 public class RedisConfigurationBuilder {
 
-    protected static final String WINX64 = "winx64";
-    protected static final String LINUX = "linux";
-    protected static final String OSX = "osx";
+    private static final String WINX64 = "winx64";
+    private static final String LINUX = "linux";
+    private static final String OSX = "osx";
 
     private static final String DEFAULT_DATA_DIR = "/data";
 
@@ -47,7 +47,7 @@ public class RedisConfigurationBuilder {
 
     // All of the following are just the defaults, which can be overridden
     protected String osDirectoryName =
-            switch (Platform.get()) {
+            switch (OSPlatform.get()) {
                 case LINUX -> LINUX;
                 case MAC -> OSX;
                 case WINDOWS -> WINX64;
@@ -223,14 +223,9 @@ public class RedisConfigurationBuilder {
                 getBaseDir(),
                 getLibDir(),
                 _getDataDir(),
-                _getTmpDir(),
-                Platform.isWindows(),
                 _getArgs(),
                 _getOSLibraryEnvironmentVarName(),
                 isSecurityDisabled(),
-                isDeletingTemporaryBaseAndDataDirsOnShutdown(),
-                this::getURL,
-                getDefaultCharacterSet(),
                 buildExecutables(),
                 getProcessListener());
     }
@@ -258,20 +253,7 @@ public class RedisConfigurationBuilder {
         return getDataDir();
     }
 
-    protected File _getTmpDir() {
-        if (isNull(getTmpDir())
-                || getTmpDir().equals(new File(SystemUtils.JAVA_IO_TMPDIR, DEFAULT_TMP_DIR))) {
-            return new File(
-                    SystemUtils.JAVA_IO_TMPDIR
-                            + File.separator
-                            + DEFAULT_TMP_DIR
-                            + File.separator
-                            + getPort());
-        }
-        return getTmpDir();
-    }
-
-    protected boolean isNull(File file) {
+    private boolean isNull(File file) {
         return file == null;
     }
 
@@ -289,7 +271,7 @@ public class RedisConfigurationBuilder {
             String portStr = String.valueOf(getPort());
             // Use /tmp instead getBaseDir() here, else we too easily hit
             // the "mysqld ERROR The socket file path is too long (> 107)" issue
-            socket = SystemUtils.JAVA_IO_TMPDIR + "/MariaDB4j." + portStr + ".sock";
+            socket = SystemUtils.JAVA_IO_TMPDIR + "/redis4j." + portStr + ".sock";
         }
         return socket;
     }
@@ -298,10 +280,9 @@ public class RedisConfigurationBuilder {
         return databaseVersion;
     }
 
-    public RedisConfigurationBuilder setDatabaseVersion(String databaseVersion) {
+    public void setDatabaseVersion(String databaseVersion) {
         checkIfFrozen("setDatabaseVersion");
         this.databaseVersion = databaseVersion;
-        return this;
     }
 
     private String getRedisVersion() {
@@ -335,7 +316,7 @@ public class RedisConfigurationBuilder {
     }
 
     protected String _getOSLibraryEnvironmentVarName() {
-        return switch (Platform.get()) {
+        return switch (OSPlatform.get()) {
             case LINUX -> "LD_LIBRARY_PATH";
             case MAC -> "DYLD_FALLBACK_LIBRARY_PATH";
             case WINDOWS -> "PATH";
@@ -378,7 +359,7 @@ public class RedisConfigurationBuilder {
     }
 
     private Map<RedisConfiguration.Executable, Supplier<File>> buildExecutables() {
-        String extension = Platform.isWindows() ? ".exe" : "";
+        String extension = OSPlatform.isWindows() ? ".exe" : "";
         executables.putIfAbsent(Server, () -> new File(baseDir, "redis-server" + extension));
         executables.putIfAbsent(Benchmark, () -> new File(baseDir, "redis-benchmark" + extension));
         executables.putIfAbsent(Client, () -> new File(baseDir, "redis-cli" + extension));

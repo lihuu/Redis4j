@@ -33,6 +33,7 @@ import java.net.URL;
 
 /**
  * File utilities.
+ * origin from <a href="https://github.com/MariaDB4j/MariaDB4j/blob/main/mariaDB4j-core/src/main/java/ch/vorburger/mariadb4j/Util.java">...</a>
  *
  * @author Michael Vorburger
  * @author Michael Seaton
@@ -162,6 +163,7 @@ public class Util {
                 }
             }
         }
+        assert lastIOException != null;
         throw lastIOException;
     }
 
