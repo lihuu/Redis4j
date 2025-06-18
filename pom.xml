@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>redis4j-core</module>
+        <module>redis4j-jupiter</module>
     </modules>
 
     <properties>

@@ -4,6 +4,7 @@ import ch.vorburger.exec.ManagedProcess;
 import ch.vorburger.exec.ManagedProcessBuilder;
 import ch.vorburger.exec.ManagedProcessException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,7 +185,7 @@ public class Redis implements Closeable {
     protected void addPortAndMaybeSocketArguments(ManagedProcessBuilder builder)
             throws IOException {
         builder.addArgument("--port " + configuration.getPort());
-        if (!configuration.isWindows()) {
+        if (!SystemUtils.IS_OS_WINDOWS) {
             builder.addFileArgument("--socket", getAbsoluteSocketFile());
         }
     }
@@ -230,7 +231,7 @@ public class Redis implements Closeable {
 
         try {
             Util.extractFromClasspathToFile(configuration.getBinariesClassPathLocation(), baseDir);
-            if (!configuration.isWindows()) {
+            if (!OSPlatform.isWindows()) {
                 // On Windows, the executables are already executable, so no need to force them
                 Util.forceExecutable(configuration.getExecutable(Server));
             }

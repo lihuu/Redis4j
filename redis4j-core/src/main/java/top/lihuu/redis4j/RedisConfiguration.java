@@ -20,7 +20,6 @@
 package top.lihuu.redis4j;
 
 import ch.vorburger.exec.ManagedProcessListener;
-import org.apache.commons.lang3.SystemUtils;
 
 import java.io.File;
 import java.util.List;
@@ -88,16 +87,12 @@ public interface RedisConfiguration {
      */
     boolean isDeletingTemporaryBaseAndDataDirsOnShutdown();
 
-    /**
-     * Whether running on Windows (some start-up parameters are different).
-     *
-     * @return returns boolean isWindows
-     */
-    boolean isWindows();
+
+    default boolean forceCleanAfterShutdown() {
+        return true;
+    }
 
     List<String> getArgs();
-
-    String getOSLibraryEnvironmentVarName();
 
     /**
      * Returns an instance of ManagedProcessListener class.
@@ -124,7 +119,6 @@ public interface RedisConfiguration {
         private final File tmpDir;
         private final boolean isDeletingTemporaryBaseAndDataDirsOnShutdown;
         private final List<String> args;
-        private final String osLibraryEnvironmentVarName;
         private final ManagedProcessListener listener;
         private final Map<Executable, Supplier<File>> executables;
 
@@ -149,7 +143,6 @@ public interface RedisConfiguration {
             this.isDeletingTemporaryBaseAndDataDirsOnShutdown =
                     isDeletingTemporaryBaseAndDataDirsOnShutdown;
             this.args = args;
-            this.osLibraryEnvironmentVarName = osLibraryEnvironmentVarName;
             this.listener = listener;
             this.executables = executables;
         }
@@ -191,18 +184,8 @@ public interface RedisConfiguration {
         }
 
         @Override
-        public boolean isWindows() {
-            return SystemUtils.IS_OS_WINDOWS;
-        }
-
-        @Override
         public List<String> getArgs() {
             return args;
-        }
-
-        @Override
-        public String getOSLibraryEnvironmentVarName() {
-            return osLibraryEnvironmentVarName;
         }
 
         @Override
