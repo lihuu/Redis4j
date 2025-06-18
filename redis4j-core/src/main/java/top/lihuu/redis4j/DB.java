@@ -7,20 +7,22 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
+import static top.lihuu.redis4j.RedisConfiguration.Executable.Client;
 import static top.lihuu.redis4j.RedisConfiguration.Executable.Server;
 
 
-public class DB {
+public class DB implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(DB.class);
 
     protected final RedisConfiguration configuration;
 
     private File baseDir;
-    private File libDir;
     private File dataDir;
     private File tmpDir;
     private ManagedProcess redisProcess;
@@ -53,12 +55,23 @@ public class DB {
         return db;
     }
 
+
     /**
-     * This factory method is the mechanism for constructing a new embedded database for use. This
-     * method automatically installs the database and prepares it for use with default
-     * configuration, allowing only for specifying port.
+     * This factory method is the mechanism for constructing a new embedded database with random port for use. This
+     * method automatically installs the database and prepares it for use.
      *
-     * @param port the port to start the embedded database on
+     * @return a new DB instance
+     * @throws ch.vorburger.exec.ManagedProcessException if something fatal went wrong
+     */
+    public static DB newEmbeddedRedis() throws ManagedProcessException {
+        return newEmbeddedRedis(0);
+    }
+
+    /**
+     * This factory method is the mechanism for constructing a new embedded database with a specific port for use. This
+     * method automatically installs the database and prepares it for use.
+     *
+     * @param port the port to use for the embedded Redis instance
      * @return a new DB instance
      * @throws ch.vorburger.exec.ManagedProcessException if something fatal went wrong
      */
@@ -68,22 +81,16 @@ public class DB {
         return newEmbeddedRedis(config.build());
     }
 
-    /**
-     * Starts up the redis, using the data directory and port specified in the configuration.
-     *
-     * @throws ch.vorburger.exec.ManagedProcessException if something fatal went wrong
-     */
     public synchronized void start() throws ManagedProcessException {
-        logger.info("Starting up the database...");
+        logger.info("Starting up redis-server...");
         boolean ready = false;
         try {
             redisProcess = startPreparation();
-            ready =
-                    redisProcess.startAndWaitForConsoleMessageMaxMs(
-                            getReadyForConnectionsTag(), dbStartMaxWaitInMS);
+            ready = redisProcess.startAndWaitForConsoleMessageMaxMs(
+                    getReadyForConnectionsTag(), dbStartMaxWaitInMS);
         } catch (Exception e) {
-            logger.error("failed to start mysqld", e);
-            throw new ManagedProcessException("An error occurred while starting the database", e);
+            logger.error("failed to start redis-server", e);
+            throw new ManagedProcessException("An error occurred while starting redis-server", e);
         }
         if (!ready) {
             if (redisProcess != null && redisProcess.isAlive()) {
@@ -99,31 +106,32 @@ public class DB {
         logger.info("Database startup complete.");
     }
 
-    protected String getReadyForConnectionsTag() {
-        return ": ready for connections.";
+    /**
+     * Returns the magic string that indicates that the database is ready to accept connections.
+     * This is used to wait for the database to be ready after starting it.
+     *
+     * @return the magic string indicating readiness
+     */
+    private String getReadyForConnectionsTag() {
+        return "Ready to accept connections tcp";
     }
 
     synchronized ManagedProcess startPreparation() throws IOException {
         ManagedProcessBuilder builder = new ManagedProcessBuilder(configuration.getExecutable(Server));
-        builder.getEnvironment().put(configuration.getOSLibraryEnvironmentVarName(), libDir.getAbsolutePath());
 
-        if (!hasArgument("--daemonize")) {
-            builder.addArgument("--daemonize yes");
-        }
+        // always use --daemonize no, we can catch output to confirm the redis-server has been started.
+        builder.addArgument("--daemonize no");
 
         if (!hasArgument("--appendonly")) {
             builder.addArgument("--appendonly no");
         }
+        // TODO if has provided aof file, then we should use it and should set appendonly yes
 
         if (!hasArgument("--protected-mode")) {
-            builder.addArgument("--protected-mode no");
+            builder.addArgument("--protected-mode yes");
         }
 
-        if (!hasArgument("--logfile")) {
-            builder.addArgument("--logfile", "stdout");
-        }
-
-        builder.addFileArgument("--dir", baseDir).setWorkingDirectory(baseDir);
+        builder.addArgument("--dir " + dataDir.getAbsolutePath());
 
         addPortAndMaybeSocketArguments(builder);
         for (String arg : configuration.getArgs()) {
@@ -131,11 +139,24 @@ public class DB {
         }
 
         cleanupOnExit();
-        // because cleanupOnExit() just installed our (class DB) own
-        // Shutdown hook, we don't need the one from ManagedProcess:
         builder.setDestroyOnShutdown(false);
         logger.info("redis executable: " + builder.getExecutable());
         return builder.build();
+    }
+
+    public String runCommand(String command) throws ManagedProcessException {
+        ManagedProcessBuilder managedProcessBuilder = new ManagedProcessBuilder(configuration.getExecutable(Client));
+        ByteArrayOutputStream stdOutput = new ByteArrayOutputStream();
+        managedProcessBuilder.addStdOut(stdOutput);
+        managedProcessBuilder.addArgument("-p");
+        managedProcessBuilder.addArgument(configuration.getPort() + "");
+        String[] commandParts = command.split(" ");
+        for (String part : commandParts) {
+            managedProcessBuilder.addArgument(part);
+        }
+        ManagedProcess process = managedProcessBuilder.build();
+        process.start();
+        return stdOutput.toString();
     }
 
     protected boolean hasArgument(final String argumentName) {
@@ -149,7 +170,7 @@ public class DB {
 
     protected void addPortAndMaybeSocketArguments(ManagedProcessBuilder builder)
             throws IOException {
-        builder.addArgument("--port=" + configuration.getPort());
+        builder.addArgument("--port " + configuration.getPort());
         if (!configuration.isWindows()) {
             builder.addFileArgument("--socket", getAbsoluteSocketFile());
         }
@@ -221,7 +242,6 @@ public class DB {
      */
     protected void prepareDirectories() throws ManagedProcessException {
         baseDir = Util.getDirectory(configuration.getBaseDir());
-        libDir = Util.getDirectory(configuration.getLibDir());
         tmpDir = Util.getDirectory(configuration.getTmpDir());
         try {
             File dataDirPath = configuration.getDataDir();
@@ -239,19 +259,22 @@ public class DB {
      * Adds a shutdown hook to ensure that when the JVM exits, the database is stopped, and any
      * temporary data directories are cleaned up.
      */
-    protected void cleanupOnExit() {
+    private void cleanupOnExit() {
         String threadName = "Shutdown Hook Deletion Thread for Temporary DB " + dataDir.toString();
         final DB db = this;
-        Runtime.getRuntime()
-                .addShutdownHook(
-                        new DBShutdownHook(
-                                threadName,
-                                db,
-                                () -> redisProcess,
-                                () -> baseDir,
-                                () -> dataDir,
-                                () -> tmpDir,
-                                configuration));
+        Runtime.getRuntime().addShutdownHook(
+                new DBShutdownHook(
+                        threadName,
+                        db,
+                        () -> redisProcess,
+                        () -> baseDir,
+                        () -> dataDir,
+                        () -> tmpDir,
+                        configuration));
     }
 
+    @Override
+    public void close() throws ManagedProcessException {
+        this.stop();
+    }
 }

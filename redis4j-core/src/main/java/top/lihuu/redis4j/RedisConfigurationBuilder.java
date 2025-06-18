@@ -31,21 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static top.lihuu.redis4j.RedisConfiguration.Executable.Benchmark;
-import static top.lihuu.redis4j.RedisConfiguration.Executable.Server;
+import static top.lihuu.redis4j.RedisConfiguration.Executable.*;
 
-/**
- * Builder for DBConfiguration. Has lot's of sensible default conventions etc.
- *
- * @author Michael Vorburger
- */
 public class RedisConfigurationBuilder {
-
-    // TODO The defaulting logic here is too convulted, and should be redone one day...
-    //   It should be simple: By default, a unique ephemeral directory should be used (not based on
-    // port);
-    //   unless the user explicitly sets another directory, in which case that should be used
-    // instead.
 
     protected static final String WINX64 = "winx64";
     protected static final String LINUX = "linux";
@@ -390,13 +378,11 @@ public class RedisConfigurationBuilder {
     }
 
     private Map<RedisConfiguration.Executable, Supplier<File>> buildExecutables() {
-        String extension = getExtension();
-        executables.putIfAbsent(Server, () -> new File(baseDir, "redis" + extension));
+        String extension = Platform.isWindows() ? ".exe" : "";
+        executables.putIfAbsent(Server, () -> new File(baseDir, "redis-server" + extension));
         executables.putIfAbsent(Benchmark, () -> new File(baseDir, "redis-benchmark" + extension));
+        executables.putIfAbsent(Client, () -> new File(baseDir, "redis-cli" + extension));
         return executables;
     }
 
-    protected String getExtension() {
-        return Platform.isWindows() ? ".exe" : "";
-    }
 }

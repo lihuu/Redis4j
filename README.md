@@ -1,0 +1,1 @@
+Redis wrapper for java. No external dependencies,No cluster, no sentinel, just run it in your application.

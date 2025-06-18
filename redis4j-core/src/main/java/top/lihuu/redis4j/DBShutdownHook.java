@@ -52,7 +52,7 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
     private static final Logger logger = LoggerFactory.getLogger(DB.class);
 
     private final DB db;
-    private final Supplier<ManagedProcess> mysqldProcessSupplier;
+    private final Supplier<ManagedProcess> processSupplier;
     private final Supplier<File> dataDirSupplier;
     private final Supplier<File> baseDirSupplier;
     private final Supplier<File> tmpDirSupplier;
@@ -80,7 +80,7 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
             RedisConfiguration configuration) {
         super(threadName);
         this.db = db;
-        this.mysqldProcessSupplier = mysqldProcessSupplier;
+        this.processSupplier = mysqldProcessSupplier;
         this.baseDirSupplier = baseDirSupplier;
         this.dataDirSupplier = dataDirSupplier;
         this.tmpDirSupplier = tmpDirSupplier;
@@ -299,7 +299,7 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
      */
     @Override
     public void run() {
-        ManagedProcess redisProcess = mysqldProcessSupplier.get();
+        ManagedProcess redisProcess = processSupplier.get();
         // ManagedProcess DestroyOnShutdown ProcessDestroyer does
         // something similar, but it shouldn't hurt to better be save
         // than sorry and do it again ourselves here as well.

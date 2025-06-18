@@ -30,7 +30,6 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Objects;
 
 /**
  * File utilities.
@@ -42,14 +41,15 @@ public class Util {
 
     private static final Logger logger = LoggerFactory.getLogger(Util.class);
 
-    private Util() {}
+    private Util() {
+    }
 
     /**
      * Retrieve the directory located at the given path. Checks that path indeed is a reabable
      * directory. If this does not exist, create it (and log having done so).
      *
      * @param dir directory(ies, can include parent directories) names, as forward slash ('/')
-     *     separated String
+     *            separated String
      * @return safe File object representing that path name
      * @throws IllegalArgumentException If it is not a directory, or it is not readable
      */
@@ -58,7 +58,7 @@ public class Util {
             try {
                 FileUtils.forceMkdir(dir);
             } catch (IOException e) {
-                throw new IllegalArgumentException( "Unable to create new directory at path: " + dir, e);
+                throw new IllegalArgumentException("Unable to create new directory at path: " + dir, e);
             }
         }
         String absPath = dir.getAbsolutePath();
@@ -105,10 +105,10 @@ public class Util {
      * Extract files from a package on the classpath into a directory.
      *
      * @param packagePath e.g. "com/stuff" (always forward slash not backslash, never dot)
-     * @param toDir directory to extract to
+     * @param toDir       directory to extract to
      * @return int the number of files copied
      * @throws IOException if something goes wrong, including if nothing was found on
-     *     classpath
+     *                     classpath
      */
     public static int extractFromClasspathToFile(String packagePath, File toDir)
             throws IOException {

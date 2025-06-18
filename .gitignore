@@ -38,3 +38,4 @@ build/
 .DS_Store
 
 .idea/
+/redis4j-db-winx64-8.2.0/dump.rdb
