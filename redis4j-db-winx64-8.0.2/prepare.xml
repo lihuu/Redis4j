@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="MariaDB4J" default="extract">
+<project name="Redis4j" default="extract">
     <description>
         Ant task to download file from internet and extract during maven package
     </description>

@@ -37,7 +37,7 @@ public class RedisConfigurationBuilder {
 
     private static final String WINX64 = "winx64";
     private static final String LINUX = "linux";
-    private static final String OSX = "osx";
+    private static final String OSX = "macaarch64";
 
     private static final String DEFAULT_DATA_DIR = "/data";
 

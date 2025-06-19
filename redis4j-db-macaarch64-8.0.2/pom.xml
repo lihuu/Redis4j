@@ -4,12 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>top.lihuu</groupId>
-    <artifactId>redis4j-db-winx64</artifactId>
+    <artifactId>redis4j-db-macaarch64</artifactId>
     <version>8.0.2</version>
 
     <properties>
         <redis.version>8.0.2</redis.version>
-        <cacheDir>R:/redis4j</cacheDir>
     </properties>
 
     <build>
@@ -33,7 +32,7 @@
                                 <property name="project.build.directory" value="${project.build.directory}"/>
                                 <property name="cacheDir" value="${cacheDir}"/>
                                 <property name="project.version" value="${project.version}"/>
-                                <property name="mariaDB.version" value="${mariaDB.version}"/>
+                                <property name="redis.version" value="${redis.version}"/>
                                 <ant antfile="${project.basedir}/prepare.xml">
                                 </ant>
                             </target>

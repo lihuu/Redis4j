@@ -13,9 +13,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
-import static top.lihuu.redis4j.RedisConfiguration.Executable.Client;
-import static top.lihuu.redis4j.RedisConfiguration.Executable.Server;
-
+import static top.lihuu.redis4j.RedisConfiguration.Executable.*;
 
 public class Redis implements Closeable {
 
@@ -197,10 +195,8 @@ public class Redis implements Closeable {
 
     protected void addPortAndMaybeSocketArguments(ManagedProcessBuilder builder)
             throws IOException {
-        builder.addArgument("--port " + configuration.getPort());
-        if (!SystemUtils.IS_OS_WINDOWS) {
-            builder.addFileArgument("--socket", getAbsoluteSocketFile());
-        }
+        builder.addArgument("--port");
+        builder.addArgument(String.valueOf(configuration.getPort()));
     }
 
     /**
@@ -247,6 +243,8 @@ public class Redis implements Closeable {
             if (!OSPlatform.isWindows()) {
                 // On Windows, the executables are already executable, so no need to force them
                 Util.forceExecutable(configuration.getExecutable(Server));
+                Util.forceExecutable(configuration.getExecutable(Client));
+                Util.forceExecutable(configuration.getExecutable(Benchmark));
             }
         } catch (IOException e) {
             throw new RuntimeException("Error unpacking embedded DB", e);

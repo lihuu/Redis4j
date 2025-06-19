@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<project name="Redis4j-homebrew" default="extract">
+
+    <target name="env">
+        <echo message="Project path   : ${project.basedir}" />
+        <echo message="Output location: ${project.build.directory}" />
+        <echo message="Redis version: ${redis.version}" />
+    </target>
+
+    <target name="brew" depends="env">
+        <exec executable="brew">
+            <arg value="install" />
+            <arg value="redis" />
+        </exec>
+    </target>
+
+    <target name="extract" depends="env,brew">
+        <copy failonerror="true" verbose="true"
+              todir="${project.build.directory}/generated-resources/top/lihuu/redis4j/redis-${project.version}/macaarch64">
+            <fileset dir="/opt/homebrew/opt/redis/bin">
+                <include name="redis-server" />
+                <include name="redis-cli" />
+                <include name="redis-benchmark" />
+            </fileset>
+        </copy>
+
+        <copy failonerror="true" verbose="true"
+              todir="${project.build.directory}/generated-resources/top/lihuu/redis4j/redis-${project.version}/macaarch64">
+            <fileset dir="/opt/homebrew/etc">
+                <include name="redis.conf" />
+            </fileset>
+        </copy>
+
+        <chmod
+                dir="${project.build.directory}/generated-resources/top/lihuu/redis4j/redis-${project.version}/macaarch64"
+                perm="ugo+rx"
+                includes="redis-cli,redis-server,redis-benchmark" />
+    </target>
+</project>
