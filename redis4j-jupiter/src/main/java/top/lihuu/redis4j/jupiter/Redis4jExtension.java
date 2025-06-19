@@ -18,7 +18,7 @@ public class Redis4jExtension implements BeforeAllCallback, ExtensionContext.Sto
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
-        if (!started.get()) {
+        if (started.get()) {
             return;
         }
 
