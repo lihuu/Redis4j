@@ -6,7 +6,7 @@
     <parent>
         <groupId>top.lihuu</groupId>
         <artifactId>Redis4j</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
 
     <artifactId>redis4j-jupiter</artifactId>
@@ -15,7 +15,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.version>1.0-SNAPSHOT</project.version>
+        <project.version>1.0.0</project.version>
     </properties>
 
     <dependencies>
