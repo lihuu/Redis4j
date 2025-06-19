@@ -78,6 +78,8 @@ public interface RedisConfiguration {
      */
     File getTmpDir();
 
+    File getInitRdbFile();
+
     /**
      * Whether to delete the base and data directory on shutdown, if it is in a temporary directory.
      * NB: If you've set the base and data directories to non temporary directories, then they'll
@@ -121,6 +123,7 @@ public interface RedisConfiguration {
         private final List<String> args;
         private final ManagedProcessListener listener;
         private final Map<Executable, Supplier<File>> executables;
+        private final File initAofFile;
 
         Impl(
                 int port,
@@ -133,7 +136,7 @@ public interface RedisConfiguration {
                 String osLibraryEnvironmentVarName,
                 boolean isDeletingTemporaryBaseAndDataDirsOnShutdown,
                 Map<Executable, Supplier<File>> executables,
-                ManagedProcessListener listener) {
+                ManagedProcessListener listener, File initAofFile) {
             this.port = port;
             this.socket = socket;
             this.binariesClassPathLocation = binariesClassPathLocation;
@@ -145,6 +148,7 @@ public interface RedisConfiguration {
             this.args = args;
             this.listener = listener;
             this.executables = executables;
+            this.initAofFile = initAofFile;
         }
 
         @Override
@@ -179,6 +183,11 @@ public interface RedisConfiguration {
         }
 
         @Override
+        public File getInitRdbFile() {
+            return initAofFile;
+        }
+
+        @Override
         public boolean isDeletingTemporaryBaseAndDataDirsOnShutdown() {
             return isDeletingTemporaryBaseAndDataDirsOnShutdown;
         }
@@ -203,5 +212,6 @@ public interface RedisConfiguration {
                             })
                     .get();
         }
+
     }
 }

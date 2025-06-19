@@ -171,4 +171,30 @@ public class Util {
 
         void apply() throws E;
     }
+
+    /**
+     * Convert a Windows path to a Cygwin path.
+     *
+     * @param windowsPath
+     * @return
+     */
+    public static String convertWinToCygwinPath(String windowsPath) {
+        if (windowsPath == null || windowsPath.isEmpty()) {
+            return windowsPath;
+        }
+
+        String path = windowsPath.replace('\\', '/');
+
+        if (path.startsWith("//")) {
+            return path;
+        }
+
+        if (path.length() >= 2 && Character.isLetter(path.charAt(0)) && path.charAt(1) == ':') {
+            char driveLetter = Character.toLowerCase(path.charAt(0)); // 获取小写盘符
+            return "/cygdrive/" + driveLetter + path.substring(2);
+        }
+
+        return path;
+    }
+
 }

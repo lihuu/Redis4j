@@ -316,29 +316,29 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
         }
 
         File dataDir = dataDirSupplier.get();
-        if (dataDir.exists()
-                && configuration.isDeletingTemporaryBaseAndDataDirsOnShutdown()
-                && Util.isTemporaryDirectory(dataDir.getAbsoluteFile())) {
-            logger.info(
-                    "cleanupOnExit() ShutdownHook quietly deleting temporary DB data directory: "
-                            + dataDir);
-            deleteQuietly(dataDir);
-        }
-        File baseDir = baseDirSupplier.get();
-        if (baseDir.exists()
-                && configuration.isDeletingTemporaryBaseAndDataDirsOnShutdown()
-                && Util.isTemporaryDirectory(baseDir.getAbsoluteFile())) {
-            logger.info(
-                    "cleanupOnExit() ShutdownHook quietly deleting temporary DB base directory: "
-                            + baseDir);
-            deleteQuietly(baseDir);
-        }
-        File tmpDir = tmpDirSupplier.get();
-        if (tmpDir.exists() && Util.isTemporaryDirectory(tmpDir.getAbsoluteFile())) {
-            logger.info(
-                    "cleanupOnExit() ShutdownHook quietly deleting temporary DB tmp directory: "
-                            + tmpDir);
-            deleteQuietly(tmpDir);
-        }
+//        if (dataDir.exists()
+//                && configuration.isDeletingTemporaryBaseAndDataDirsOnShutdown()
+//                && Util.isTemporaryDirectory(dataDir.getAbsoluteFile())) {
+//            logger.info(
+//                    "cleanupOnExit() ShutdownHook quietly deleting temporary DB data directory: "
+//                            + dataDir);
+//            deleteQuietly(dataDir);
+//        }
+//        File baseDir = baseDirSupplier.get();
+//        if (baseDir.exists()
+//                && configuration.isDeletingTemporaryBaseAndDataDirsOnShutdown()
+//                && Util.isTemporaryDirectory(baseDir.getAbsoluteFile())) {
+//            logger.info(
+//                    "cleanupOnExit() ShutdownHook quietly deleting temporary DB base directory: "
+//                            + baseDir);
+//            deleteQuietly(baseDir);
+//        }
+//        File tmpDir = tmpDirSupplier.get();
+//        if (tmpDir.exists() && Util.isTemporaryDirectory(tmpDir.getAbsoluteFile())) {
+//            logger.info(
+//                    "cleanupOnExit() ShutdownHook quietly deleting temporary DB tmp directory: "
+//                            + tmpDir);
+//            deleteQuietly(tmpDir);
+//        }
     }
 }

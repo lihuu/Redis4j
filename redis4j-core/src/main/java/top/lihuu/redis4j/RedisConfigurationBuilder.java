@@ -55,14 +55,14 @@ public class RedisConfigurationBuilder {
     protected File baseDir = new File(SystemUtils.JAVA_IO_TMPDIR + "/Redis4j/base");
     protected File libDir = null;
 
-    protected File dataDir = new File(SystemUtils.JAVA_IO_TMPDIR + DEFAULT_DATA_DIR);
+    protected File dataDir = new File(SystemUtils.JAVA_IO_TMPDIR + "/Redis4j" + DEFAULT_DATA_DIR);
+    private File initRdbFile = null; // see initAofFile()
     protected File tmpDir = new File(SystemUtils.JAVA_IO_TMPDIR + DEFAULT_TMP_DIR);
     protected String socket = null; // see _getSocket()
     protected int port = 0;
     protected boolean isDeletingTemporaryBaseAndDataDirsOnShutdown = true;
     protected boolean isUnpackingFromClasspath = true;
     protected List<String> args = new ArrayList<>();
-    private boolean isSecurityDisabled = true;
 
     private boolean frozen = false;
     private ManagedProcessListener listener;
@@ -221,13 +221,13 @@ public class RedisConfigurationBuilder {
                 _getSocket(),
                 _getBinariesClassPathLocation(),
                 getBaseDir(),
-                getLibDir(),
                 _getDataDir(),
+                getTmpDir(),
                 _getArgs(),
                 _getOSLibraryEnvironmentVarName(),
                 isSecurityDisabled(),
                 buildExecutables(),
-                getProcessListener());
+                getProcessListener(), initRdbFile);
     }
 
     public boolean isSecurityDisabled() {
@@ -366,4 +366,9 @@ public class RedisConfigurationBuilder {
         return executables;
     }
 
+    public RedisConfigurationBuilder setInitRdbFile(File initRdbFile) {
+        checkIfFrozen("setInitRdbFile");
+        this.initRdbFile = initRdbFile;
+        return this;
+    }
 }

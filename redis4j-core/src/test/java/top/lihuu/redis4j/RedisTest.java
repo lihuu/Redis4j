@@ -2,7 +2,9 @@ package top.lihuu.redis4j;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -35,6 +37,34 @@ public class RedisTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Test
+    public void should_run_with_custom_aof_file_successfully() {
+        URL resource = getClass().getClassLoader().getResource("dump.rdb");
+        String file = resource.getFile();
+        File initRdbFile = new File(file);
+        if (!initRdbFile.exists()) {
+            throw new RuntimeException("initRdbFile not found: " + initRdbFile.getAbsolutePath());
+        }
+
+        RedisConfiguration redisConfiguration = RedisConfigurationBuilder
+                .newBuilder()
+                .setInitRdbFile(initRdbFile)
+                .build();
+        try (Redis db = Redis.newEmbeddedRedis(redisConfiguration)) {
+            db.start();
+            String result = db.runCommand("--scan");
+            System.out.println("The result of keys * is: " + result);
+            result = db.runCommand("CONFIG GET dir");
+            System.out.println("The result of CONFIG GET dir is: " + result);
+            result = db.runCommand("CONFIG GET dbfilename");
+            System.out.println("The result of CONFIG GET dbfilename is: " + result);
+            assertEquals("world\n", db.runCommand("GET hello"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
 }

@@ -1,5 +1,6 @@
 package top.lihuu.redis4j.jupiter;
 
+import ch.vorburger.exec.ManagedProcessException;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import top.lihuu.redis4j.Redis;
@@ -22,21 +23,27 @@ public class Redis4jExtension implements BeforeAllCallback, ExtensionContext.Sto
         }
 
         synchronized (Redis4jExtension.class) {
+            // Double-check to avoid multiple initializations when running tests in parallel
             if (started.get()) {
                 return;
             }
-            // Initialize Redis4j or any other setup needed before all tests
-            // For example, starting an embedded Redis server
-            // Redis.newEmbeddedRedis().start();
-            Redis redis = Redis.newEmbeddedRedis();
-            redis.start();
+            Redis redis = startRedis();
             started.set(true);
             rootContext = context.getRoot();
+            // We use the global store to share the Redis instance across tests
             ExtensionContext.Store globalStore = rootContext.getStore(ExtensionContext.Namespace.GLOBAL);
             globalStore.put(Redis4jExtension.class, this);
             globalStore.put(Redis.class, redis);
         }
 
+    }
+
+    private static Redis startRedis() throws ManagedProcessException {
+        Redis redis = Redis.newEmbeddedRedis();
+        redis.start();
+        int port = redis.getPort();
+        System.setProperty("redis.port", String.valueOf(port));
+        return redis;
     }
 
     @Override

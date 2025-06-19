@@ -121,22 +121,35 @@ public class Redis implements Closeable {
         return "Ready to accept connections tcp";
     }
 
+    private String getSuitableFilePath(String path) {
+        if (OSPlatform.isWindows()) {
+            return Util.convertWinToCygwinPath(path);
+        }
+        return path;
+    }
+
     synchronized ManagedProcess startPreparation() throws IOException {
         ManagedProcessBuilder builder = new ManagedProcessBuilder(configuration.getExecutable(Server));
 
+        builder.addArgument(getSuitableFilePath(baseDir.getAbsolutePath() + File.separator + "redis.conf"));
+
         // always use --daemonize no, we can catch output to confirm the redis-server has been started.
-        builder.addArgument("--daemonize no");
+        builder.addArgument("--daemonize");
+        builder.addArgument("no");
 
         if (!hasArgument("--appendonly")) {
-            builder.addArgument("--appendonly no");
+            builder.addArgument("--appendonly");
+            builder.addArgument("no");
         }
-        // TODO if has provided aof file, then we should use it and should set appendonly yes
 
         if (!hasArgument("--protected-mode")) {
-            builder.addArgument("--protected-mode yes");
+            builder.addArgument("--protected-mode");
+            builder.addArgument("yes");
         }
 
-        builder.addArgument("--dir " + dataDir.getAbsolutePath());
+
+        builder.addArgument("--dir");
+        builder.addArgument(getSuitableFilePath(dataDir.getAbsolutePath()));
 
         addPortAndMaybeSocketArguments(builder);
         for (String arg : configuration.getArgs()) {
@@ -254,7 +267,28 @@ public class Redis implements Closeable {
             if (Util.isTemporaryDirectory(dataDirPath)) {
                 FileUtils.deleteDirectory(dataDirPath);
             }
+
+
             dataDir = Util.getDirectory(dataDirPath);
+
+            File initRdbFile = configuration.getInitRdbFile();
+            if (initRdbFile != null) {
+                if (!initRdbFile.exists()) {
+                    throw new ManagedProcessException(
+                            "The initial RDB file does not exist: " + initRdbFile.getAbsolutePath());
+                }
+                if (!initRdbFile.isFile()) {
+                    throw new ManagedProcessException(
+                            "The initial RDB file is not a file: " + initRdbFile.getAbsolutePath());
+                }
+                if (!initRdbFile.canRead()) {
+                    throw new ManagedProcessException(
+                            "The initial RDB file is not readable: " + initRdbFile.getAbsolutePath());
+                }
+                FileUtils.copyFile(initRdbFile, new File(dataDir, "dump.rdb"));
+            } else {
+                logger.info("No initial RDB file specified, starting with an empty database.");
+            }
         } catch (Exception e) {
             throw new ManagedProcessException(
                     "An error occurred while preparing the data directory", e);
