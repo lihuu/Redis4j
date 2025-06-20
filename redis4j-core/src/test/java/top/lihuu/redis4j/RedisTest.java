@@ -40,7 +40,7 @@ public class RedisTest {
     }
 
     @Test
-    public void should_run_with_custom_aof_file_successfully() {
+    public void should_run_with_custom_rdb_file_successfully() {
         URL resource = getClass().getClassLoader().getResource("dump.rdb");
         String file = resource.getFile();
         File initRdbFile = new File(file);

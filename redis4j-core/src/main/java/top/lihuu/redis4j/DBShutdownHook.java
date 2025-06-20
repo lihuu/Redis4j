@@ -55,7 +55,6 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
     private final Supplier<ManagedProcess> processSupplier;
     private final Supplier<File> dataDirSupplier;
     private final Supplier<File> baseDirSupplier;
-    private final Supplier<File> tmpDirSupplier;
     private final RedisConfiguration configuration;
     private final LinkOption[] linkOptions = {};
 
@@ -66,24 +65,21 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
      * @param db                    a {@link ch.vorburger.mariadb4j.DB} object
      * @param mysqldProcessSupplier a {@link Supplier} object
      * @param baseDirSupplier       a {@link Supplier} object
-     * @param tmpDirSupplier        a {@link Supplier} object
      * @param dataDirSupplier       a {@link Supplier} object
      * @param configuration         a {@link ch.vorburger.mariadb4j.DBConfiguration} object
      */
     public DBShutdownHook(
-            String threadName,
-            Redis db,
-            Supplier<ManagedProcess> mysqldProcessSupplier,
-            Supplier<File> baseDirSupplier,
-            Supplier<File> tmpDirSupplier,
-            Supplier<File> dataDirSupplier,
-            RedisConfiguration configuration) {
+        String threadName,
+        Redis db,
+        Supplier<ManagedProcess> mysqldProcessSupplier,
+        Supplier<File> baseDirSupplier,
+        Supplier<File> dataDirSupplier,
+        RedisConfiguration configuration) {
         super(threadName);
         this.db = db;
         this.processSupplier = mysqldProcessSupplier;
         this.baseDirSupplier = baseDirSupplier;
         this.dataDirSupplier = dataDirSupplier;
-        this.tmpDirSupplier = tmpDirSupplier;
         this.configuration = configuration;
     }
 
@@ -161,7 +157,7 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
     private Path setReadOnly(Path path, boolean readOnly) throws IOException {
         List<Exception> causeList = new ArrayList<>(2);
         DosFileAttributeView fileAttributeView =
-                Files.getFileAttributeView(path, DosFileAttributeView.class, linkOptions);
+            Files.getFileAttributeView(path, DosFileAttributeView.class, linkOptions);
         if (fileAttributeView != null) {
             try {
                 fileAttributeView.setReadOnly(readOnly);
@@ -172,7 +168,7 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
         }
 
         PosixFileAttributeView posixFileAttributeView =
-                Files.getFileAttributeView(path, PosixFileAttributeView.class, linkOptions);
+            Files.getFileAttributeView(path, PosixFileAttributeView.class, linkOptions);
         if (posixFileAttributeView != null) {
             PosixFileAttributes readAttributes = posixFileAttributeView.readAttributes();
             Set<PosixFilePermission> permissions = readAttributes.permissions();
@@ -193,9 +189,9 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
             throw ioException;
         }
         throw new IOException(
-                String.format(
-                        "No DosFileAttributeView or PosixFileAttributeView for '%s' (linkOptions=%s)",
-                        path, Arrays.toString(linkOptions)));
+            String.format(
+                "No DosFileAttributeView or PosixFileAttributeView for '%s' (linkOptions=%s)",
+                path, Arrays.toString(linkOptions)));
     }
 
     private File[] listFiles(File directory, FileFilter fileFilter) throws IOException {
@@ -217,11 +213,11 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
         Objects.requireNonNull(file, fileParamName);
         if (!file.exists()) {
             throw new IllegalArgumentException(
-                    "File system element for parameter '"
-                            + fileParamName
-                            + "' does not exist: '"
-                            + file
-                            + "'");
+                "File system element for parameter '"
+                    + fileParamName
+                    + "' does not exist: '"
+                    + file
+                    + "'");
         }
         return file;
     }
@@ -230,7 +226,7 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
         Objects.requireNonNull(directory, name);
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException(
-                    "Parameter '" + name + "' is not a directory: '" + directory + "'");
+                "Parameter '" + name + "' is not a directory: '" + directory + "'");
         }
         return directory;
     }
@@ -246,7 +242,7 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
      */
     @Override
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-            throws IOException {
+        throws IOException {
         return FileVisitResult.CONTINUE;
     }
 
@@ -311,34 +307,27 @@ class DBShutdownHook extends Thread implements FileVisitor<Path> {
             }
         } catch (ManagedProcessException e) {
             logger.warn(
-                    "cleanupOnExit() ShutdownHook: An error occurred while stopping the database",
-                    e);
+                "cleanupOnExit() ShutdownHook: An error occurred while stopping the database",
+                e);
         }
 
         File dataDir = dataDirSupplier.get();
         if (dataDir.exists()
-                && configuration.isDeletingTemporaryBaseAndDataDirsOnShutdown()
-                && Util.isTemporaryDirectory(dataDir.getAbsoluteFile())) {
+            && configuration.isDeletingTemporaryBaseAndDataDirsOnShutdown()
+            && Util.isTemporaryDirectory(dataDir.getAbsoluteFile())) {
             logger.info(
-                    "cleanupOnExit() ShutdownHook quietly deleting temporary DB data directory: "
-                            + dataDir);
+                "cleanupOnExit() ShutdownHook quietly deleting temporary DB data directory: "
+                    + dataDir);
             deleteQuietly(dataDir);
         }
         File baseDir = baseDirSupplier.get();
         if (baseDir.exists()
-                && configuration.isDeletingTemporaryBaseAndDataDirsOnShutdown()
-                && Util.isTemporaryDirectory(baseDir.getAbsoluteFile())) {
+            && configuration.isDeletingTemporaryBaseAndDataDirsOnShutdown()
+            && Util.isTemporaryDirectory(baseDir.getAbsoluteFile())) {
             logger.info(
-                    "cleanupOnExit() ShutdownHook quietly deleting temporary DB base directory: "
-                            + baseDir);
+                "cleanupOnExit() ShutdownHook quietly deleting temporary DB base directory: "
+                    + baseDir);
             deleteQuietly(baseDir);
-        }
-        File tmpDir = tmpDirSupplier.get();
-        if (tmpDir.exists() && Util.isTemporaryDirectory(tmpDir.getAbsoluteFile())) {
-            logger.info(
-                    "cleanupOnExit() ShutdownHook quietly deleting temporary DB tmp directory: "
-                            + tmpDir);
-            deleteQuietly(tmpDir);
         }
     }
 }

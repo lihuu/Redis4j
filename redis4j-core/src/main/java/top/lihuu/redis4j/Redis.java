@@ -4,7 +4,6 @@ import ch.vorburger.exec.ManagedProcess;
 import ch.vorburger.exec.ManagedProcessBuilder;
 import ch.vorburger.exec.ManagedProcessException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +22,6 @@ public class Redis implements Closeable {
 
     private File baseDir;
     private File dataDir;
-    private File tmpDir;
     private ManagedProcess redisProcess;
 
     protected int dbStartMaxWaitInMS = 30000;
@@ -86,7 +84,7 @@ public class Redis implements Closeable {
 
     public synchronized void start() throws ManagedProcessException {
         logger.info("Starting up redis-server...");
-        boolean ready = false;
+        boolean ready;
         try {
             redisProcess = startPreparation();
             ready = redisProcess.startAndWaitForConsoleMessageMaxMs(
@@ -259,7 +257,6 @@ public class Redis implements Closeable {
      */
     protected void prepareDirectories() throws ManagedProcessException {
         baseDir = Util.getDirectory(configuration.getBaseDir());
-        tmpDir = Util.getDirectory(configuration.getTmpDir());
         try {
             File dataDirPath = configuration.getDataDir();
             if (Util.isTemporaryDirectory(dataDirPath)) {
@@ -307,7 +304,6 @@ public class Redis implements Closeable {
                         () -> redisProcess,
                         () -> baseDir,
                         () -> dataDir,
-                        () -> tmpDir,
                         configuration));
     }
 

@@ -35,29 +35,17 @@ import static top.lihuu.redis4j.RedisConfiguration.Executable.*;
 
 public class RedisConfigurationBuilder {
 
-    private static final String WINX64 = "winx64";
-    private static final String LINUX = "linux";
-    private static final String OSX = "macaarch64";
-
     private static final String DEFAULT_DATA_DIR = "/data";
-
-    private static final String DEFAULT_TMP_DIR = "/tmp";
 
     private String databaseVersion = null;
 
-    // All of the following are just the defaults, which can be overridden
-    protected String osDirectoryName =
-            switch (OSPlatform.get()) {
-                case LINUX -> LINUX;
-                case MAC -> OSX;
-                case WINDOWS -> WINX64;
-            };
+    private String osDirectoryName = OSPlatform.getDirectoryName();
+
     protected File baseDir = new File(SystemUtils.JAVA_IO_TMPDIR + "/Redis4j/base");
     protected File libDir = null;
 
     protected File dataDir = new File(SystemUtils.JAVA_IO_TMPDIR + "/Redis4j" + DEFAULT_DATA_DIR);
     private File initRdbFile = null; // see initAofFile()
-    protected File tmpDir = new File(SystemUtils.JAVA_IO_TMPDIR + DEFAULT_TMP_DIR);
     protected String socket = null; // see _getSocket()
     protected int port = 0;
     protected boolean isDeletingTemporaryBaseAndDataDirsOnShutdown = true;
@@ -117,23 +105,6 @@ public class RedisConfigurationBuilder {
     public RedisConfigurationBuilder setDataDir(File dataDir) {
         checkIfFrozen("setDataDir");
         this.dataDir = dataDir;
-        return this;
-    }
-
-    public File getTmpDir() {
-        return tmpDir;
-    }
-
-    public RedisConfigurationBuilder setTmpDir(String tmpDir) {
-        checkIfFrozen("setTmpDir");
-        this.tmpDir =
-                new File(
-                        (tmpDir == null)
-                                ? SystemUtils.JAVA_IO_TMPDIR
-                                + File.separator
-                                + path()
-                                + DEFAULT_TMP_DIR
-                                : tmpDir);
         return this;
     }
 
@@ -210,24 +181,22 @@ public class RedisConfigurationBuilder {
     }
 
     public RedisConfiguration build() {
-        if (dataDir == null || tmpDir == null) {
+        if (dataDir == null) {
             String p = SystemUtils.JAVA_IO_TMPDIR + "/" + path();
             this.baseDir = new File(p + "/base");
         }
 
         frozen = true;
         return new RedisConfiguration.Impl(
-                _getPort(),
-                _getSocket(),
-                _getBinariesClassPathLocation(),
-                getBaseDir(),
-                _getDataDir(),
-                getTmpDir(),
-                _getArgs(),
-                _getOSLibraryEnvironmentVarName(),
-                isSecurityDisabled(),
-                buildExecutables(),
-                getProcessListener(), initRdbFile);
+            _getPort(),
+            _getSocket(),
+            _getBinariesClassPathLocation(),
+            getBaseDir(),
+            _getDataDir(),
+            _getArgs(),
+            isSecurityDisabled(),
+            buildExecutables(),
+            getProcessListener(), initRdbFile);
     }
 
     public boolean isSecurityDisabled() {
@@ -242,13 +211,13 @@ public class RedisConfigurationBuilder {
 
     protected File _getDataDir() {
         if (isNull(getDataDir())
-                || getDataDir().equals(new File(SystemUtils.JAVA_IO_TMPDIR, DEFAULT_DATA_DIR))) {
+            || getDataDir().equals(new File(SystemUtils.JAVA_IO_TMPDIR, DEFAULT_DATA_DIR))) {
             return new File(
-                    SystemUtils.JAVA_IO_TMPDIR
-                            + File.separator
-                            + DEFAULT_DATA_DIR
-                            + File.separator
-                            + _getPort());
+                SystemUtils.JAVA_IO_TMPDIR
+                    + File.separator
+                    + DEFAULT_DATA_DIR
+                    + File.separator
+                    + _getPort());
         }
         return getDataDir();
     }
@@ -288,11 +257,11 @@ public class RedisConfigurationBuilder {
     private String getRedisVersion() {
         String databaseVersion = getDatabaseVersion();
         if (databaseVersion == null) {
-            if (!OSX.equals(getOS()) && !LINUX.equals(getOS()) && !WINX64.equals(getOS())) {
+            if (!OSPlatform.isMacOS() && !OSPlatform.isWindows() && !OSPlatform.isLinux()) {
                 throw new IllegalStateException(
-                        "OS not directly supported, please use setDatabaseVersion() to set the name "
-                                + "of the package that the binaries are in, for: "
-                                + SystemUtils.OS_VERSION);
+                    "OS not directly supported, please use setDatabaseVersion() to set the name "
+                        + "of the package that the binaries are in, for: "
+                        + SystemUtils.OS_VERSION);
             }
             return "redis-8.0.2";
         }
@@ -301,8 +270,8 @@ public class RedisConfigurationBuilder {
 
     protected String getBinariesClassPathLocation() {
         return getClass().getPackage().getName().replace(".", "/") +
-                "/" + getRedisVersion() + "/" +
-                getOS();
+            "/" + getRedisVersion() + "/" +
+            getOS();
     }
 
     public RedisConfigurationBuilder setOS(String osDirectoryName) {
@@ -352,10 +321,6 @@ public class RedisConfigurationBuilder {
         checkIfFrozen("setDefaultCharacterSet");
         this.defaultCharacterSet = defaultCharacterSet;
         return this;
-    }
-
-    public String getDefaultCharacterSet() {
-        return defaultCharacterSet;
     }
 
     private Map<RedisConfiguration.Executable, Supplier<File>> buildExecutables() {

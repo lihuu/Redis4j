@@ -71,13 +71,6 @@ public interface RedisConfiguration {
      */
     File getDataDir();
 
-    /**
-     * Directory for DB's temporary files.
-     *
-     * @return returns temporary directory value
-     */
-    File getTmpDir();
-
     File getInitRdbFile();
 
     /**
@@ -118,7 +111,6 @@ public interface RedisConfiguration {
         private final String binariesClassPathLocation;
         private final File baseDir;
         private final File dataDir;
-        private final File tmpDir;
         private final boolean isDeletingTemporaryBaseAndDataDirsOnShutdown;
         private final List<String> args;
         private final ManagedProcessListener listener;
@@ -131,10 +123,8 @@ public interface RedisConfiguration {
                 String binariesClassPathLocation,
                 File baseDir,
                 File dataDir,
-                File tmpDir,
                 List<String> args,
-                String osLibraryEnvironmentVarName,
-                boolean isDeletingTemporaryBaseAndDataDirsOnShutdown,
+            boolean isDeletingTemporaryBaseAndDataDirsOnShutdown,
                 Map<Executable, Supplier<File>> executables,
                 ManagedProcessListener listener, File initAofFile) {
             this.port = port;
@@ -142,7 +132,6 @@ public interface RedisConfiguration {
             this.binariesClassPathLocation = binariesClassPathLocation;
             this.baseDir = baseDir;
             this.dataDir = dataDir;
-            this.tmpDir = tmpDir;
             this.isDeletingTemporaryBaseAndDataDirsOnShutdown =
                     isDeletingTemporaryBaseAndDataDirsOnShutdown;
             this.args = args;
@@ -175,11 +164,6 @@ public interface RedisConfiguration {
         @Override
         public File getDataDir() {
             return dataDir;
-        }
-
-        @Override
-        public File getTmpDir() {
-            return tmpDir;
         }
 
         @Override
