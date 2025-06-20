@@ -42,7 +42,6 @@ public class RedisConfigurationBuilder {
     private String osDirectoryName = OSPlatform.getDirectoryName();
 
     protected File baseDir = new File(SystemUtils.JAVA_IO_TMPDIR + "/Redis4j/base");
-    protected File libDir = null;
 
     protected File dataDir = new File(SystemUtils.JAVA_IO_TMPDIR + "/Redis4j" + DEFAULT_DATA_DIR);
     private File initRdbFile = null; // see initAofFile()
@@ -82,19 +81,6 @@ public class RedisConfigurationBuilder {
     public RedisConfigurationBuilder setBaseDir(File baseDir) {
         checkIfFrozen("setBaseDir");
         this.baseDir = baseDir;
-        return this;
-    }
-
-    public File getLibDir() {
-        if (libDir == null) {
-            libDir = new File(baseDir + "/libs");
-        }
-        return libDir;
-    }
-
-    public RedisConfigurationBuilder setLibDir(File libDir) {
-        checkIfFrozen("setLibDir");
-        this.libDir = libDir;
         return this;
     }
 

@@ -1,5 +1,6 @@
 package top.lihuu.redis4j;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -42,6 +43,7 @@ public class RedisTest {
     @Test
     public void should_run_with_custom_rdb_file_successfully() {
         URL resource = getClass().getClassLoader().getResource("dump.rdb");
+        Assertions.assertNotNull(resource);
         String file = resource.getFile();
         File initRdbFile = new File(file);
         if (!initRdbFile.exists()) {
@@ -64,7 +66,6 @@ public class RedisTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
 }
